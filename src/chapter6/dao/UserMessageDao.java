@@ -16,7 +16,7 @@ import chapter6.exception.SQLRuntimeException;
 
 public class UserMessageDao {
 
-	public List<UserMessage> select(Connection connection, Integer userId, String start, String end, String searchWord, String likeSearc, int num) {
+	public List<UserMessage> select(Connection connection, Integer userId, String start, String end, String searchWord, String likeSearch, int num) {
 		PreparedStatement ps = null;
 		try {
 			StringBuilder sql = new StringBuilder();
@@ -37,7 +37,11 @@ public class UserMessageDao {
 			}
 
 			if (!StringUtils.isBlank(searchWord)) {
-				sql.append(" AND messages.text = ? ");
+				if (!likeSearch.equals("same")) {
+					sql.append(" AND messages.text like ? ");
+				} else {
+					sql.append(" AND messages.text = ? ");
+				}
 			}
 
 			sql.append("ORDER BY created_date DESC limit " + num);
@@ -49,25 +53,35 @@ public class UserMessageDao {
 				ps.setInt(3, userId);
 
 				if (!StringUtils.isBlank(searchWord)) {
-					ps.setString(4, searchWord);
+					if (likeSearch.equals("startFrom")) {
+						ps.setString(4, searchWord + "%");
+					} else if (likeSearch.equals("contain")){
+						ps.setString(4, "%" + searchWord + "%");
+					} else {
+						ps.setString(4, searchWord);
+					}
 				}
 			} else {
 				if (!StringUtils.isBlank(searchWord)) {
-					ps.setString(3, searchWord);
+					if (likeSearch.equals("startFrom")) {
+						ps.setString(3, searchWord + "%");
+					} else if (likeSearch.equals("contain")){
+						ps.setString(3, "%" + searchWord + "%");
+					} else {
+						ps.setString(3, searchWord);
+					}
 				}
 			}
 
 			ResultSet rs = ps.executeQuery();
-
-            List<UserMessage> messages = toUserMessages(rs);
-            return messages;
-
+			List<UserMessage> messages = toUserMessages(rs);
+			return messages;
 		} catch (SQLException e) {
-            throw new SQLRuntimeException(e);
-        } finally {
-            close(ps);
-        }
-    }
+			throw new SQLRuntimeException(e);
+		} finally {
+			close(ps);
+		}
+	}
 
     private List<UserMessage> toUserMessages(ResultSet rs) throws SQLException {
 
