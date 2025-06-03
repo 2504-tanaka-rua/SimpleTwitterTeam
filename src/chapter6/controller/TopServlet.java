@@ -39,6 +39,7 @@ public class TopServlet extends HttpServlet {
 		request.setAttribute("likeSearch", 1);
 
 		String test = "ぷーぷーちゃん！";
+
 		if (!StringUtils.isBlank(radiobutton) && radiobutton.equals("contain")) {
 			request.setAttribute("likeSearch", 2);
 		} else {
